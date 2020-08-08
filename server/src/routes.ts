@@ -1,9 +1,10 @@
 import { Router } from 'express'
+import { ClassController } from './controllers/ClassController'
 
 const routes = Router()
 
-routes.get('/', (request, response) => {
-  return response.json({ message: 'Hello, World!' })
-})
+const classController = new ClassController()
+
+routes.post('/classes', classController.store)
 
 export { routes }
