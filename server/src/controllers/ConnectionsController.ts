@@ -2,21 +2,21 @@ import { Request, Response } from 'express'
 
 import { connection } from '../database/connection'
 
+import { Connections } from '../models/Connections'
+
+const connections = new Connections()
+
 class ConnectionsController {
   async index (request: Request, response: Response) {
-    const totalConnections = await connection('connections').count('* as total')
+    const totalConnections = await connections.countTotalConnections()
 
-    const { total } = totalConnections[0]
-
-    return response.json({ total })
+    return response.json({ totalConnections })
   }
 
   async store (request: Request, response: Response) {
     const { user_id } = request.body
 
-    await connection('connections').insert({
-      user_id
-    })
+    await connections.insertUserId(user_id)
 
     return response.status(201).send()
   }

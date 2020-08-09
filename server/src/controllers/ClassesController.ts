@@ -3,6 +3,8 @@ import { Request, Response } from 'express'
 import { connection } from '../database/connection'
 import { convertHoursToMinutes } from '../utils/convertHoursToMinutes'
 
+import { Classes } from '../models/Classes'
+
 interface IScheduleItem {
   week_day: number
   from: string
@@ -14,6 +16,8 @@ interface IFilterParams {
   subject: string
   time: string
 }
+
+const classes = new Classes()
 
 class ClassesController {
   async index (request: Request, response: Response) {
@@ -31,20 +35,10 @@ class ClassesController {
 
     const timeInMinutes = convertHoursToMinutes(filter.time)
 
-    const classes = await connection('classes')
-      .whereExists(function () {
-        this.select('class_schedule.*')
-          .from('class_schedule')
-          .whereRaw('`class_schedule`.`class_id` = `classes`.`id`')
-          .whereRaw('`class_schedule`.`week_day` = ??', [Number(filter.week_day)])
-          .whereRaw('`class_schedule`.`from` <= ??', [timeInMinutes])
-          .whereRaw('`class_schedule`.`to` > ??', [timeInMinutes])
-      })
-      .where('classes.subject', '=', filter.subject)
-      .join('users', 'classes.user_id', '=', 'users.id')
-      .select(['classes.*', 'users.*'])
+    const filteredClasses = await classes
+      .byDayAndTimeAndSubject(filter, timeInMinutes)
 
-    return response.json(classes)
+    return response.json(filteredClasses)
   }
 
   async store (request: Request, response: Response) {
