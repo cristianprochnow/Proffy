@@ -9,7 +9,44 @@ interface IScheduleItem {
   to: string
 }
 
-class ClassController {
+interface IFilterParams {
+  week_day: number
+  subject: string
+  time: string
+}
+
+class ClassesController {
+  async index (request: Request, response: Response) {
+    const filter: IFilterParams = request.query
+
+    if (
+      !filter.week_day ||
+      !filter.subject ||
+      !filter.time
+    ) {
+      return response.json({
+        error: 'Missing filter to search classes.'
+      })
+    }
+
+    const timeInMinutes = convertHoursToMinutes(filter.time)
+
+    const classes = await connection('classes')
+      .whereExists(function () {
+        this.select('class_schedule.*')
+          .from('class_schedule')
+          .whereRaw('`class_schedule`.`class_id` = `classes`.`id`')
+          .whereRaw('`class_schedule`.`week_day` = ??', [Number(filter.week_day)])
+          .whereRaw('`class_schedule`.`from` <= ??', [timeInMinutes])
+          .whereRaw('`class_schedule`.`to` > ??', [timeInMinutes])
+      })
+      .where('classes.subject', '=', filter.subject)
+      .join('users', 'classes.user_id', '=', 'users.id')
+      .select(['classes.*', 'users.*'])
+
+    return response.json(classes)
+  }
+
   async store (request: Request, response: Response) {
     const {
       name,
@@ -59,11 +96,11 @@ class ClassController {
       await transaction.rollback()
 
       return response.status(400).json({
-        error: 'Unexpected error while creating new class.',
+        subject: 'Unexpected error while creating new class.',
         description: error
       })
     }
   }
 }
 
-export { ClassController }
+export { ClassesController }
