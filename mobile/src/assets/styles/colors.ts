@@ -18,7 +18,9 @@ const colors: IColors = {
   inputBackground: '#F8F8FC',
   buttonText: '#FFFFFF',
   boxBase: '#FFFFFF',
-  boxFooter: '#FAFAFC'
+  boxFooter: '#FAFAFC',
+  activeBoxFooter: '#EBEBF5',
+  tabTextColor: '#C1BCCC'
 }
 
 export { colors }
