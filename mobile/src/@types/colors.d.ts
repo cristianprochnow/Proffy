@@ -17,6 +17,8 @@ interface IColors {
   buttonText: string
   boxBase: string
   boxFooter: string
+  activeBoxFooter: string
+  tabTextColor: string
 }
 
 export { IColors }
